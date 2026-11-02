@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+*.log
+result
+native-sdk
+cli-native
+.gleam-purifier/
+examples/minimal/build/
