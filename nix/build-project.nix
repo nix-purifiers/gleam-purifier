@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: MIT
 {
   lib,
+  stdenv,
+  beamPackages,
   runCommand,
   fetchurl,
   nativeGleam,
@@ -9,6 +11,7 @@
   gnutar,
   gzip,
   python3,
+  writeText,
   esbuild,
 }:
 {
@@ -18,6 +21,7 @@
   fetchers ? { },
   test ? true,
   target ? null,
+  otpApplications ? [ ],
   javascriptModules ? { },
   javascriptWebjars ? { },
   srcFilter ?
@@ -48,6 +52,9 @@ let
     inherit src;
     filter = srcFilter;
   };
+  otpSelected = otpApplications != [ ];
+  config = builtins.fromTOML (builtins.readFile (src + "/gleam.toml"));
+  native = builtins.fromTOML (builtins.readFile manifestLock);
   javascriptSelected = javascriptModules != { };
   validCoordinate =
     value:
@@ -70,7 +77,13 @@ let
         ]
     )
     && builtins.all validCoordinate (builtins.attrValues value);
-  effectiveTarget = if javascriptSelected then "javascript" else target;
+  effectiveTarget =
+    if javascriptSelected then
+      "javascript"
+    else if otpSelected then
+      "erlang"
+    else
+      target;
   targetArgs = lib.optionalString (effectiveTarget != null) (
     " --target " + lib.escapeShellArg effectiveTarget
   );
@@ -88,10 +101,15 @@ let
     find . -type f -exec touch -d @1 {} +
     ${nativeGleam}/bin/gleam build${targetArgs}
     ${lib.optionalString test "${nativeGleam}/bin/gleam test${targetArgs}"}
+    ${lib.optionalString otpSelected "${nativeGleam}/bin/gleam export erlang-shipment"}
     # Incremental caches serialize unordered compiler maps; runtime outputs
     # live alongside them and remain intact.
     find build -type f \( -name '*.cache' -o -name '*.cache_meta' \) -delete
     cp -r . "$out/"
+    ${lib.optionalString otpSelected ''
+      ${toolchain}/bin/erl +S 2:2 -noshell -eval 'io:put_chars(json:encode(#{runtimeRoot => unicode:characters_to_binary(code:root_dir())})),halt().' > "$out/otp-runtime.json"
+      ${nativeGleam}/bin/gleam --version > "$out/otp-compiler-version.txt"
+    ''}
     ${lib.optionalString javascriptSelected ''
       ${nativeGleam}/bin/gleam export package-information --out "$out/javascript-package.json"
       ${nativeGleam}/bin/gleam export package-interface --out "$out/javascript-interface.json"
@@ -146,7 +164,39 @@ let
         );
     }
   ) selectedJavascript;
-  projections = lib.mapAttrs (_: artifact: artifact.projections) javascript;
+  otp =
+    import ./otp-projections.nix
+      {
+        inherit
+          lib
+          stdenv
+          runCommand
+          python3
+          writeText
+          purifier
+          ;
+        inherit (beamPackages) erlang;
+      }
+      {
+        producer = rawProject;
+        roots = otpApplications;
+        projectName = config.name;
+        applications = [
+          {
+            package = config.name;
+            name = config.name;
+            version = config.version;
+          }
+        ]
+        ++ map (p: {
+          package = p.name;
+          name = p.otp_app or p.name;
+          version = p.version;
+        }) native.packages;
+      };
+  projections =
+    (lib.mapAttrs (_: artifact: artifact.projections) javascript)
+    // lib.optionalAttrs otpSelected { erlang = otp.projections; };
   project = rawProject // {
     inherit projections;
   };
@@ -169,6 +219,10 @@ let
       '';
 in
 assert lib.assertMsg (
+  !otpSelected || (!javascriptSelected && (target == null || target == "erlang"))
+) "gleam-purifier: otpApplications requires the Erlang target";
+assert !otpSelected || otp.validated;
+assert lib.assertMsg (
   builtins.isAttrs javascriptModules
   && builtins.all (
     label:
@@ -190,7 +244,8 @@ assert lib.assertMsg (
   packages = {
     inherit project environment;
     default = project;
-  };
+  }
+  // lib.optionalAttrs otpSelected { otp = otp.package; };
   tests = project;
   inherit release javascript projections;
   fetches = lock.entries;

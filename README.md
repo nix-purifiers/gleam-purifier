@@ -149,3 +149,43 @@ supported. The SDK targets x86_64-linux and aarch64-linux.
 
 The purifier idea was inspired by nixcloud's
 [cargo (libnix)](https://github.com/nixcloud/cargo).
+
+## Compiled Erlang applications across consumers
+
+```nix
+project = pkgs.gleam-purifier.buildGleamProject {
+  src = ./.;
+  otpApplications = [ "my_project" ];
+};
+```
+
+Selecting the project application chooses the Erlang target and runs native
+`gleam export erlang-shipment`. `project.packages.otp` retains compiled
+applications from that production shipment. `project.projections.erlang`
+provides `otp`, `resources`, `web`, and `java-resources`. The `otp` value
+includes `applicationRoot` for `ERL_LIBS`, the original matching Erlang
+`runtime`, and `catalog`. Extract HTTP or Java resource files before loading
+them in Erlang or Elixir.
+
+The native manifest binds package/application names and versions; native
+`.app` and BEAM metadata bind actual compiled modules and dependencies.
+Only applications present in the production shipment are selected, and
+all declared required applications must be available in that set or the
+matching SDK. The catalog records native compiler/runtime identity and
+file hashes. SDK applications stay in the SDK; source caches and development
+test modules are not published as production application files.
+
+This requires a native Linux OTP27+ SDK. JavaScript module selections and
+Erlang selections are mutually exclusive. SDK mismatches, missing declared
+modules or dependencies, duplicate module owners, SDK shadows, escaping
+files, and non-SDK native binaries/NIF payloads fail explicitly. Native
+payload support requires its own runtime proof. Empty selection preserves
+existing outputs.
+
+Checks compile two genuine production revisions, call their Gleam functions
+and compiled standard library from fresh Erlang and Elixir VMs, and verify
+all loaded module origins, SHA256, and native code MD5. The same checks use
+native files, HTTP-served bytes, and extracted Java resources; an isolated
+Java class loader checks the resource JAR itself. Missing dependencies,
+genuinely compiled replacement modules, SDK incompatibility, duplicate
+ownership, and native payloads have separate controls.
