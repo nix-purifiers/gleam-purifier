@@ -79,6 +79,54 @@ are available during evaluation without building. `lockFile` and
 `manifestLock` select external locks, `target` selects `"erlang"` or
 `"javascript"`, and `test = false` skips tests.
 
+## JavaScript modules and resources
+
+Select an actual project module to export its compiled JavaScript and complete
+static `.mjs` import closure:
+
+```nix
+let
+  built = pkgs.gleam-purifier.buildGleamProject {
+    src = ./.;
+    javascriptModules.answer = "answer";
+    javascriptWebjars.answer = {
+      groupId = "org.webjars.gleam";
+      artifactId = "my-answer";
+      version = "1.0.0"; # Must match the native Gleam package version.
+    };
+  };
+in {
+  modules = built.javascript.answer;
+  documentRoot = built.projections.answer.web.documentRoot;
+  classPath = built.projections.answer.java-resources.classPath;
+  maven = built.projections.answer.maven;
+}
+```
+
+The option selects the JavaScript target and rejects a conflicting explicit
+Erlang target. The native compiler's package interface validates the module.
+esbuild supplies import-graph metadata; its temporary bundle is discarded.
+The exported modules retain their original compiler-produced bytes and relative
+paths, including compiled locked dependencies. Unimported modules, tests,
+compiler caches and unrelated source files are excluded.
+
+The selected module tree is available through `javascript.<name>`. Its separate
+`javascript.<name>.proof` output contains `selection.json`, recording the entrypoint, native manifest hash, compiler and
+Node identities, actual native file origins and byte hashes. The resource views
+provide an HTTP document root and Java resource JAR. Optional WebJars use the
+published Maven/Ivy projector's immutable identity-qualified coordinates.
+
+This supports closed static relative `.mjs` imports. Computed or dynamic imports,
+bare/external imports and paths outside the compiler's JavaScript
+runtime tree are rejected. CommonJS and other runtime assets are outside this contract.
+The ordinary consumer tests use the pinned Node SDK; serving JavaScript bytes
+does not establish browser compatibility or Erlang/OTP/NIF support.
+
+Both options default to empty sets, preserving existing builds and outputs.
+`tests/javascript-projections.sh`, called by the rebuild conformance entry,
+performs fresh native captures, Node/HTTP/Java/Gradle consumption, producer
+revision checks and invalid-selection controls on each native CI runner.
+
 ## Releases
 
 ```sh
