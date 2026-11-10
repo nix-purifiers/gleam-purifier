@@ -17,5 +17,11 @@ in
       target = "erlang";
     }).tests;
   release = project.release;
+  fixture-otp-applications =
+    (pkgs.gleam-purifier.buildGleamProject {
+      src = ./fixtures/otp-hello;
+      otpApplications = [ "locked_gleam" ];
+    }).packages.otp;
+  fixture-otp-consumers = import ./otp-projections.nix { inherit pkgs; };
   javascript-projections = import ./javascript-projections.nix { inherit pkgs; };
 }

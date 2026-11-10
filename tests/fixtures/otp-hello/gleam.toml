@@ -1,0 +1,5 @@
+name = "locked_gleam"
+version = "0.1.0"
+target = "javascript"
+[dependencies]
+gleam_stdlib = ">= 0.60.0 and < 1.0.0"
