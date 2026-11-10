@@ -8,3 +8,4 @@ nix build ".#checks.$system.erlang" --no-link
 nix build ".#checks.$system.erlang" --no-link --rebuild
 nix build ".#checks.$system.release" --no-link
 nix build ".#checks.$system.release" --no-link --rebuild
+bash tests/javascript-projections.sh

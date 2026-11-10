@@ -1,0 +1,20 @@
+{
+  "config": "name = \"projection_proof\"\nversion = \"1.0.1\"\ntarget = \"javascript\"\nlicences = [\"MIT\"]\n[dependencies]\ngleam_stdlib = \">= 0.60.0 and < 1.0.0\"\n",
+  "configHash": "78ef5cd6df73304d217ce11fb062de880da9b048bb54939a924dea4c3dbebf82",
+  "contentHash": "2cc83bd3cf348736a78fb63d302e7fefb51e4ea7b94c565b3346b94513d34489",
+  "entries": [
+    {
+      "hash": "sha256-cC87wqFHk5BogLEHixmmFl+HMjrujQxKNAhYRjNvyq4=",
+      "mirrors": [],
+      "path": "gleam/hex/hexpm/packages/702F3BC2A14793906880B1078B19A6165F87323AEE8D0C4A34085846336FCAAE.tar",
+      "url": "https://repo.hex.pm/tarballs/gleam_stdlib-0.71.0.tar"
+    }
+  ],
+  "nativeHash": "97ff1d361b95b17af10fa37f7f1ffdd07aaf7dba869bb57832b9809446827e42",
+  "nativeLock": "# Do not manually edit this file, it is managed by Gleam.\n#\n# This file locks the dependency versions used, to make your build\n# deterministic and to prevent unexpected versions from being included\n# in your application.\n#\n# You should check this file into your source control repository.\n\npackages = [\n  { name = \"gleam_stdlib\", version = \"0.71.0\", build_tools = [\"gleam\"], requirements = [], otp_app = \"gleam_stdlib\", source = \"hex\", outer_checksum = \"702F3BC2A14793906880B1078B19A6165F87323AEE8D0C4A34085846336FCAAE\" },\n]\n\n[requirements]\ngleam_stdlib = { version = \">= 0.60.0 and < 1.0.0\" }\n",
+  "toolVersions": {
+    "gleam": "1.19.2",
+    "resolver": "6471e0f83ee4785f136364df25e47f1b8c12476488357c7fde78e0b394831ac6"
+  },
+  "version": 1
+}

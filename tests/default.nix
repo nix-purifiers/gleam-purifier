@@ -17,4 +17,5 @@ in
       target = "erlang";
     }).tests;
   release = project.release;
+  javascript-projections = import ./javascript-projections.nix { inherit pkgs; };
 }
