@@ -15,14 +15,14 @@
 stdenvNoCC.mkDerivation {
   pname = "gleam-purifier";
   version = "0.1.0";
-  src = ../.;
+  src = ../..;
   nativeBuildInputs = [ makeWrapper ];
   dontBuild = true;
   installPhase = ''
     mkdir -p "$out/bin" "$out/lib/gleam-purifier"
-    cp -r gleam_purifier nix "$out/lib/gleam-purifier/"
+    cp -r gleam_purifier pkgs lib-overlays "$out/lib/gleam-purifier/"
     install -m755 bin/gleam-purifier "$out/bin/gleam-purifier"
-    substituteInPlace "$out/lib/gleam-purifier/nix/realize.nix" \
+    substituteInPlace "$out/lib/gleam-purifier/pkgs/build-gleam-project/realize.nix" \
       --replace-fail '@nixpkgs@' '${nixpkgsSrc}' \
       --replace-fail '@purifier@' '${purifierSrc}' \
       --replace-fail '@runtime@' "$out"
