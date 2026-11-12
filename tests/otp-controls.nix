@@ -8,7 +8,7 @@ let
   erlang = pkgs.beamPackages.erlang;
   selection =
     producer: runtime:
-    pkgs.callPackage ../nix/otp-projections.nix
+    pkgs.callPackage ../pkgs/build-gleam-project/otp-projections.nix
       {
         inherit purifier;
         erlang = runtime;

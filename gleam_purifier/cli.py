@@ -51,7 +51,7 @@ def checked(root,native,companion):
  if problems:=lock.problems(root,native,data):raise ValueError('\n'.join(problems))
  return data
 def realize(root,native,companion,target):
- definition=Path(__file__).resolve().parents[1]/'nix/realize.nix'
+ definition=Path(__file__).resolve().parents[1]/'pkgs/build-gleam-project/realize.nix'
  args=['nix','build','--impure','--file',definition,'--argstr','project',root,'--argstr','lockFile',companion,'--argstr','manifestLock',native,'--argstr','target',target,'--no-link','--print-out-paths']
  return Path(run(args,text=True,stdout=subprocess.PIPE).stdout.strip())
 def prefetch(root,native,companion):

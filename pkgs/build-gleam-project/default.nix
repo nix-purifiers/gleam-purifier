@@ -36,7 +36,9 @@
 }:
 let
   lock = purifier.checkLock (
-    import ./read-lock.nix { inherit lib; } { inherit src lockFile manifestLock; }
+    import ../../lib-overlays/default/read-lock.nix { inherit lib; } {
+      inherit src lockFile manifestLock;
+    }
   );
   environment = import ./environment.nix {
     inherit

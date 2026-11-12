@@ -20,7 +20,7 @@
       forAll = nixpkgs.lib.genAttrs systems;
       overlay = final: prev: {
         gleam-purifier = final.lib.makeScope final.newScope (scope: {
-          nativeGleam = scope.callPackage ./nix/gleam.nix { };
+          nativeGleam = scope.callPackage ./pkgs/build-gleam-project/gleam.nix { };
           toolchain = final.buildEnv {
             name = "gleam-purifier-toolchain";
             paths = [
@@ -31,11 +31,11 @@
               final.coreutils
             ];
           };
-          cli = scope.callPackage ./nix/cli.nix {
+          cli = scope.callPackage ./pkgs/cli/default.nix {
             nixpkgsSrc = nixpkgs;
             purifierSrc = purifier;
           };
-          buildGleamProject = scope.callPackage ./nix/build-project.nix {
+          buildGleamProject = scope.callPackage ./pkgs/build-gleam-project/default.nix {
             purifier = import (purifier + "/nix/lib") { inherit (final) lib; };
           };
         });
@@ -54,7 +54,7 @@
         default = (pkgsFor system).gleam-purifier.cli;
         cli = self.packages.${system}.default;
       });
-      lib.gleam-purifier.readLock = import ./nix/read-lock.nix { lib = nixpkgs.lib; };
+      lib.gleam-purifier = (nixpkgs.lib.extend (import ./lib-overlays/default)).gleam-purifier;
       apps = forAll (system: {
         default = {
           type = "app";
